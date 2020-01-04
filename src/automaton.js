@@ -8,10 +8,13 @@ class Automaton {
         this.size = size;
 
         this.loadedChunks = [];
+        this.step
 
         
     }
+    step(steps = 1) {
 
+    }
 
 
 }
