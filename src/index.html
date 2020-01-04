@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Cellular Automata Viewer</title>
+        <style>
+            canvas {
+                background: lightgrey;
+            }
+            html, body {
+                width:  100%;
+                height: 100%;
+                margin: 0px;
+                border: 0px;
+                overflow: hidden;
+                display: block;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="frameContainer">
+        <canvas id="webFrame"></canvas>
+        </div>
+    
+        <script src="canvasObject.js"></script>
+        <script src="automaton.js"></script>
+        <script src="autoChunk.js"></script>
+        <script>
+            //initialize everything
+            var w = new CanvasObject("webFrame");
+            window.addEventListener("resize", resize, false);
+        	resize();
+            
+            //method that is called that resizes the canvas
+            function resize() {
+                middleX = window.innerWidth/2;
+                middleY = window.innerHeight/2;
+                w.resize(window.innerWidth, window.innerHeight);
+            }
+
+        </script>
+    </body>
+
+</html>
