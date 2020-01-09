@@ -3,7 +3,14 @@ Cellular Automata implementation featuring a chunk-based loading system in a (po
 
 ## Implementation
 An instance is created with `new Automaton(rule, chunksize)` where
-- `rule` is a function that determines a given cell's next state
+- `rule` is a function that determines a given cell's next state. It takes an array of cell states containing that cell and the 8 neighbors in row-major order, starting at the bottom left. The neighborhood surrounding the cell (`neighborhood[4]`) is specified by the table below.
+
+|                 |                 |                 |
+| --------------- | --------------- | ----------------|
+| `neighborhood[6]` | `neighborhood[7]` | `neighborhood[8]` |
+| `neighborhood[3]` | `neighborhood[4]` | `neighborhood[5]` |
+| `neighborhood[0]` | `neighborhood[1]` | `neighborhood[2]` |
+
 - `chunksize` is the side-length of a single chunk.
 
 The automation is incremented with the `step()` function, which has an optional count parameter.
@@ -19,9 +26,12 @@ Every loaded chunk *either is empty or has all of its neighbors loaded*. This me
 foreach chunk in loadedChunks:
     if(chunk.isEmpty)
         foreach direction:
-            if(chunkInDirection.isLoadedAndNonempty())
-                foreach cell in chunk.border(direction):
-                    cellNextState = rule(cellAndNeighborsCurrentState);
+            if(chunkInDirection.isLoaded)
+                if(chunkInDirection.isEmpty)
+                    foreach cell in chunk.border(direction):
+                        cellNextState = rule(cellAndNeighborsCurrentState);
+            else
+                load(chunkInDirection)
     else
         foreach cell in chunk:
             cellNextState = rule(cellAndNeighborsCurrentState);

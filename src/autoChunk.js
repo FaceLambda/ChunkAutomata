@@ -30,7 +30,7 @@ class Chunk {
         this.currEmpty = this.nextEmpty;
         this.nextEmpty = true;
     }
-    get getState(x, y){
+    getState(x, y){
         return this.currentState[y * size + x];
     }
     setState(x, y, state){
