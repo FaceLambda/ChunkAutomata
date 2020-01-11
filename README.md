@@ -90,5 +90,5 @@ Consider the case where a new chunk is loaded. Whether or not that new chunk is 
 ![Image not found; is readme_images in the directory?](readme_images/UnloadedSkipExample.png)<br/>
 We fix this by adding a second dictionary to buffer the newly born chunks, adding to that dictionary instead of to the main one. We can then increment each chunk in the second dictionary before adding it to the original. *We don't have to do this more than once, because the logic for an empty chunk is different from a nonempty one. Empty chunks **will not** load new chunks.*
 
-We handle unloading in a similar way to garbage collection. Only nonempty cells actively consult their neighbors (empty cells perform a check first, to see if it should consult its neighbor).<br/>
+We handle unloading in a similar way to garbage collection. Only nonempty cells actively consult their neighbors (empty cells perform a check first, to see if it should consult its neighbor). This means that for each empty cell, we can check if it has an empty neighbor and only keep it if it does.<br/>
 ![Image not found; is readme_images in the directory?](readme_images/loadunloadTut2.png)<br/>
