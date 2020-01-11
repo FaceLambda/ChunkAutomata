@@ -33,7 +33,7 @@ Each chunk holds the states of each local cell in an array for the current and n
 
 Every loaded chunk is in a dictionary, `loadedChunks`, and *either is empty or has all of its neighbors loaded*. The idea here is that every chunk that has activity needs it and the surrounding chunks loaded, creating a buffer zone between active and unloaded chunks.<br/>
 ![Image not found; is readme_images in the directory?](readme_images/glider.gif)<br/>
-This means that stepping through iterations can rougly go as follows in broken ~~engli~~ pseudocode:
+This means that stepping through iterations can rougly go as follows in broken ~~engli~~ pseudoco
 ```
 foreach chunk in loadedChunks:
     if(chunk.isEmpty)
@@ -91,5 +91,3 @@ We fix this by adding a second dictionary to buffer the newly born chunks, addin
 
 We handle unloading in a similar way to garbage collection. Only nonempty cells actively consult their neighbors (empty cells perform a check first, to see if it should consult its neighbor).<br/>
 ![Image not found; is readme_images in the directory?](readme_images/loadunloadTut2.png)<br/>
-
-
