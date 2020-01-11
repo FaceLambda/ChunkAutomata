@@ -1,5 +1,6 @@
 # ChunkAutomata
 Cellular Automata implementation featuring a chunk-based loading system in a (potentially) infinite world in Javascript.
+Code in src folder with sample index.html.
 
 ## Implementation
 An instance is created with `new Automaton(rule, chunksize)` where
@@ -24,7 +25,7 @@ getChunk(x, y){
 }
 ```
 
-A sample implementation can be found in src's index.html. Use WASD to move, and e to advance the automaton.
+A sample implementation can be found in src's index.html. Use WASD to move, and E to advance the automaton.
 ### Chunks
 Each chunk holds the states of each local cell in an array for the current and next iteration. Each chunk is either
 - ***unloaded***, where the automaton doesn't consider it to exist, and it is not in memory.
