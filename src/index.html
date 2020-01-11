@@ -5,7 +5,7 @@
         <title>Cellular Automata Viewer</title>
         <style>
             canvas {
-                background: lightgrey;
+                background: grey;
             }
             html, body {
                 width:  100%;
@@ -20,24 +20,163 @@
 
     <body>
         <div id="frameContainer">
-        <canvas id="webFrame"></canvas>
+        <canvas id="cellFrame"></canvas>
         </div>
     
         <script src="canvasObject.js"></script>
         <script src="automaton.js"></script>
         <script src="autoChunk.js"></script>
         <script>
-            //initialize everything
-            var w = new CanvasObject("webFrame");
-            window.addEventListener("resize", resize, false);
-        	resize();
+            //pixels per cell side
+            var zoom = 10;
+            //cells per chunk
+            var chunkSize = 16;
+            //cells per move tick
+            var movespeed = 10;
+            //color to draw live cells
+            var cellColor = "yellow";
+            var loadedColor = "white";
+            var emptyColor = "lightgrey";
+            var gridColor = "darkgrey";
+
+
+            //coordinates in real space
+            var coords = [0,0];
+
+            var halfWidth, halfHeight;
+
+            var automaton = new Automaton(function(neighbors){
+                //count neighbors
+                var i = (neighbors[0] == null)? 0 : 1;
+                i += (neighbors[1] == null)? 0 : 1;
+                i += (neighbors[2] == null)? 0 : 1;
+                i += (neighbors[3] == null)? 0 : 1;
+                i += (neighbors[5] == null)? 0 : 1;
+                i += (neighbors[6] == null)? 0 : 1;
+                i += (neighbors[7] == null)? 0 : 1;
+                i += (neighbors[8] == null)? 0 : 1;
+                /*
+                  if alive, look for 2-3, if dead, look for 3
+                  
+                  simplify by ORing with cell state, sending
+                  the last bit high if alive, so we only need
+                  to check if i == 3.
+                */
+                i |= (neighbors[4] == null)? 0 : 1;
+                return (i == 3)? 1 : null;
+            }, chunkSize);
             
+            //initialize own mini library for GUIs
+            var w = new CanvasObject("cellFrame");
+            window.addEventListener("resize", resize, false);
+            setTimeout(resize, 100);
             //method that is called that resizes the canvas
             function resize() {
-                middleX = window.innerWidth/2;
-                middleY = window.innerHeight/2;
+                halfWidth = window.innerWidth/2;
+                halfHeight = window.innerHeight/2;
                 w.resize(window.innerWidth, window.innerHeight);
+                reloadGUI();
             }
+
+            var graphics = w.graphics;
+
+            //call this on every shift of view, automaton step, and cell set
+            function reloadGUI(){
+                w.clear();
+                //half the amount of cells per side
+                var hcountX = window.innerWidth / zoom;
+                var hcountY = window.innerHeight / zoom;
+
+                //view frustum in chunkspace
+                var minX = (coords[0] - hcountX)/chunkSize;
+                var minY = (coords[1] - hcountY)/chunkSize;
+                var maxX = (coords[0] + hcountX)/chunkSize, capX = Math.ceil(maxX);
+                var maxY = (coords[1] + hcountY)/chunkSize, capY = Math.ceil(maxY);
+
+                var pixelsPerChunk = zoom * chunkSize;
+
+                //chunk coordinates (integer)
+                var cx, cy,
+                //cell coordinates (integer)
+                x, y;
+                //iterate over each chunk in the view frustum
+                for(cx = Math.floor(minX); cx <= capX; cx++){
+                    for(cy = Math.floor(minY); cy <= capY; cy++){
+                        var chunk = automaton.getChunk(cx, cy);
+                        //nullcheck
+                        if(chunk !== undefined){
+                            //make loaded chunks white to differentiate from unloaded
+                            graphics.fillStyle = chunk.isEmpty? emptyColor: loadedColor;
+                            //pixel coordinates of bottom left corner of chunk
+                            var drX = pixelsPerChunk * (cx - minX) - halfWidth,
+                                    drY = pixelsPerChunk * (maxY - cy) - halfHeight;
+                            graphics.fillRect(drX, drY - pixelsPerChunk,
+                                    pixelsPerChunk, pixelsPerChunk);
+
+                            //realign pixel coordinates to the first cell (0,0) of chunk
+                            drY -= zoom;
+                            
+                            if(!chunk.isEmpty){
+                                graphics.fillStyle = cellColor;
+                                graphics.beginPath();
+                                for(x = 0; x < chunkSize; x++){
+                                    for(y = 0; y < chunkSize; y++){
+                                        if(chunk.getState(x,y) == 1){
+                                            graphics.rect(drX + (x * zoom), drY - ((y) * zoom),
+                                            //         zoom zoom
+                                                    zoom, zoom);
+                                        }
+                                    }
+                                }
+                                graphics.fill();
+                            }
+                        }
+                    }
+                }
+                //draw grid
+                graphics.strokeStyle = gridColor;
+                graphics.beginPath();
+                var ww = window.innerWidth, wh = window.innerHeight;
+                //grid offset = (topleftcoords % 1) * zoom;
+                //let minX,minY be top left coords in cellspace
+                minX = coords[0]-hcountX;
+                minY = coords[1]+hcountY;
+                
+                        //     var drX = zoom * (x - minX) - halfWidth,
+                        //             drY = zoom * (maxY - y)-halfHeight;
+                for(x = zoom * (Math.floor(minX) - minX) - halfWidth; x < ww; x+= zoom){
+                    graphics.moveTo(x,0);
+                    graphics.lineTo(x,wh);
+                }
+                for(y = zoom * (minY - Math.floor(minY)) - halfHeight; y < wh; y+= zoom){
+                    graphics.moveTo(0,y);
+                    graphics.lineTo(ww,y);
+                }
+                graphics.stroke();
+            }
+
+            function keypressHandler(event){
+                if(event.keyCode == 87)// w
+                    coords[1] += movespeed / zoom;
+                if(event.keyCode == 65)// a
+                    coords[0] -= movespeed / zoom;
+                if(event.keyCode == 83)// s
+                    coords[1] -= movespeed / zoom;
+                if(event.keyCode == 68)// d
+                    coords[0] += movespeed / zoom;
+                if(event.keyCode == 69)// e
+                    automaton.step();
+                reloadGUI();
+            }
+            window.addEventListener("keydown",keypressHandler, false);
+            function clickHandle(event){
+                var x = Math.floor((event.clientX - halfWidth) / zoom + coords[0]);
+                var y = Math.floor((halfHeight - event.clientY) / zoom + coords[1]);
+                automaton.setCell(x,y, (automaton.getCell(x,y) == null)? 1 : null);
+                reloadGUI();
+            }
+            w.canvas.addEventListener("click", clickHandle);
+
 
         </script>
     </body>

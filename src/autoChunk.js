@@ -7,12 +7,12 @@ class Chunk {
         this.size = size;
 
         //board state, array of cells
-        this.currentState = [];
-        this.nextState = [];
+        this.currentState = new Array(size * size).fill(null);
+        this.nextState = new Array(size * size).fill(null);
 
         //boolean states for emptiness
-        this.currEmpty;
-        this.nextEmpty;
+        this.currEmpty = true;
+        this.nextEmpty = true;
         
     }
     get isEmpty(){
@@ -31,12 +31,26 @@ class Chunk {
         this.nextEmpty = true;
     }
     getState(x, y){
-        return this.currentState[y * size + x];
+        var index = y * this.size + x;
+        return this.currentState[y * this.size + x];
+    }
+    setCurrentState(x, y, state){
+        this.currentState[y * this.size + x] = state;
     }
     setState(x, y, state){
-        this.nextState[y * size + x] = state;
+        this.nextState[y * this.size + x] = state;
         if(state != null){
             this.nextEmpty = false;
+        }
+    }
+    //checks to see if current state is empty, sets emptiness accordingly
+    emptyCheck(){
+        var i;
+        var max = this.size * this.size;
+        this.currEmpty = true;
+        for(i = 0; i < max; i++){
+            if(this.currentState[i] != null)
+                this.currEmpty = false;
         }
     }
 
